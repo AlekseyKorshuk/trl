@@ -10,6 +10,7 @@ from datasets import load_dataset
 from transformers import AutoTokenizer, pipeline, AutoModelForSequenceClassification
 from trl.gpt2 import GPT2HeadWithValueModel
 from trl.gptj import GPTJHeadWithValueModel
+from trl.gpt_neo import GPTNeoHeadWithValueModel
 from trl.ppo import PPOTrainer
 
 tqdm.pandas()
@@ -75,7 +76,7 @@ tokenizer = AutoTokenizer.from_pretrained(
 model_class = None
 if "gpt2" in config["model_name"]:
     model_class = GPT2HeadWithValueModel
-elif "gpt-neo" in config["model_name"]:
+if "gpt-neo" in config["model_name"]:
     model_class = GPTNeoHeadWithValueModel
 else:
     model_class = GPTJHeadWithValueModel
