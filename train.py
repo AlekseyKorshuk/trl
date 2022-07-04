@@ -21,7 +21,7 @@ if torch.cuda.is_available():
 config = {
     "run_name": str(os.environ.get('RUN_NAME', "test-run")),
     "dataset_path": str(os.environ.get('DATASET_PATH', "ChaiML/user_model_inputs")),
-    "model_name": str(os.environ.get('MODEL_NAME', "EleutherAI/gpt-neo-125M")),
+    "model_name": str(os.environ.get('MODEL_NAME', "gpt2")),
     "cls_model_name": str(os.environ.get('CLS_MODEL_NAME', "ChaiML/rewardModel90kEpoch2K1M3")),
     "cls_tokenizer_name": str(os.environ.get('CLS_TOKENIZER_NAME', "roberta-large-mnli")),
     "auth_token": str(os.environ.get('AUTH_TOKEN', "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")),
@@ -48,7 +48,7 @@ config = {
         "eos_token": str(os.environ.get('EOS_TOKEN', "\n")),
         "pad_token": str(os.environ.get('PAD_TOKEN', "\n")),
         "early_stopping": bool(os.environ.get('EARLY_STOPPING', True)),
-        "max_new_tokens": int(os.environ.get('MAX_NEW_TOKENS', 2048)),
+        "max_new_tokens": int(os.environ.get('MAX_NEW_TOKENS', 256)),
     },
     "sentiment_kwargs": {
         "function_to_apply": str(os.environ.get('FUNCTION_TO_APPLY', "none")),
@@ -122,6 +122,8 @@ eos_token = gen_kwargs.pop("eos_token")
 gen_kwargs["eos_token_id"] = int(tokenizer(eos_token, return_tensors="pt").input_ids[0][0])
 pad_token = gen_kwargs.pop("pad_token")
 gen_kwargs["pad_token_id"] = int(tokenizer(pad_token, return_tensors="pt").input_ids[0][0])
+
+
 # model_base.config.task_specific_params["text-generation"] = gen_kwargs
 # model_ref.config.task_specific_params["text-generation"] = gen_kwargs
 
@@ -154,8 +156,12 @@ def evaluate(df_batch):
         output = model_ref.generate(query_tensors[i].unsqueeze(dim=0).to(device),
                                     **gen_kwargs).squeeze()[len(query_tensors[i]):-1]
         response_tensors_ref.append(output)
-        output = model_base.generate(query_tensors[i].unsqueeze(dim=0).to(device),
-                                     **gen_kwargs).squeeze()[len(query_tensors[i]):-1]
+        try:
+            output = model_base.generate(query_tensors[i].unsqueeze(dim=0).to(device),
+                                         **gen_kwargs).squeeze()[len(query_tensors[i]):-1]
+        except:
+            model_base.push_to_hub("ChaiML/broken-model-gpt2", use_auth_token=config["auth_token"])
+            exit(1)
         response_tensors.append(output)
 
     #### decode responses
@@ -249,7 +255,7 @@ def training_loop():
         table_rows = [list(r) for r in zip(batch['query'], batch['response'], rewards.cpu().tolist())]
         logs.update({'game_log': wandb.Table(columns=['query', 'response', 'reward'], rows=table_rows)})
         # logs.update(timing)
-        # logs.update(stats)
+        logs.update(stats)
         logs['env/reward_mean'] = torch.mean(rewards).cpu().numpy()
         logs['env/reward_std'] = torch.std(rewards).cpu().numpy()
         logs['env/reward_dist'] = rewards.cpu().numpy()

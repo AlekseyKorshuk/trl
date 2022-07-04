@@ -3,7 +3,7 @@ kind: Pod
 metadata:
   labels:
     qos.coreweave.cloud/latency: low
-  name: ppo-trainer
+  name: ppo-trainer-aleksey
   namespace: tenant-chairesearch-test
 spec:
   volumes:
@@ -11,7 +11,7 @@ spec:
       persistentVolumeClaim:
         claimName: model-storage
   containers:
-    - name: ppo-trainer-container
+    - name: ppo-trainer-container-aleksey-bad-model
       image: alekseykorshuk/ppo-trainer:v1
       imagePullPolicy: Always
       resources:
@@ -33,8 +33,10 @@ spec:
           value: "4"
         - name: INIT_KL_COEF
           value: "0.5"
+        - name: MAX_NEW_TOKENS
+          value: "64"
         - name: MODEL_NAME
-          value: "gpt2-xl" # /models/gpt-j-6B EleutherAI/gpt-j-6B EleutherAI/gpt-neo-125M gpt2-xl
+          value: "gpt2" # /models/gpt-j-6B EleutherAI/gpt-j-6B EleutherAI/gpt-neo-125M gpt2-xl
         - name: STORAGE_URI
           value: pvc://model-storage/
       readinessProbe:
