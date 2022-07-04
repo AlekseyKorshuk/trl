@@ -21,7 +21,7 @@ if torch.cuda.is_available():
 config = {
     "run_name": str(os.environ.get('RUN_NAME', "test-run")),
     "dataset_path": str(os.environ.get('DATASET_PATH', "ChaiML/user_model_inputs")),
-    "model_name": str(os.environ.get('MODEL_NAME', "gpt2")),
+    "model_name": str(os.environ.get('MODEL_NAME', "EleutherAI/gpt-neo-125M")),
     "cls_model_name": str(os.environ.get('CLS_MODEL_NAME', "ChaiML/rewardModel90kEpoch2K1M3")),
     "cls_tokenizer_name": str(os.environ.get('CLS_TOKENIZER_NAME', "roberta-large-mnli")),
     "auth_token": str(os.environ.get('AUTH_TOKEN', "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")),
@@ -122,8 +122,8 @@ eos_token = gen_kwargs.pop("eos_token")
 gen_kwargs["eos_token_id"] = int(tokenizer(eos_token, return_tensors="pt").input_ids[0][0])
 pad_token = gen_kwargs.pop("pad_token")
 gen_kwargs["pad_token_id"] = int(tokenizer(pad_token, return_tensors="pt").input_ids[0][0])
-model_base.config.task_specific_params["text-generation"] = gen_kwargs
-model_ref.config.task_specific_params["text-generation"] = gen_kwargs
+# model_base.config.task_specific_params["text-generation"] = gen_kwargs
+# model_ref.config.task_specific_params["text-generation"] = gen_kwargs
 
 
 def collater(data):
